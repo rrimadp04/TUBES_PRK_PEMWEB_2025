@@ -54,15 +54,12 @@ class MaterialImage extends Model
     public function create($data)
     {
         $sql = "INSERT INTO {$this->table} 
-                (material_id, filename, path, file_size, mime_type, is_primary, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                (material_id, image_url, is_primary, created_at) 
+                VALUES (?, ?, ?, NOW())";
         
         $stmt = $this->query($sql, [
             $data['material_id'],
-            $data['filename'],
-            $data['path'],
-            $data['file_size'],
-            $data['mime_type'],
+            $data['image_url'],
             $data['is_primary'] ?? false
         ]);
 

@@ -41,10 +41,10 @@ $router->post('/api/materials/{id}', 'api/MaterialApiController@update');
 $router->post('/api/materials/{id}/delete', 'api/MaterialApiController@destroy');
 
 // Material Images API routes
-$router->get('/api/materials/{materialId}/images', 'api/MaterialImageApiController@index');
-$router->post('/api/materials/{materialId}/images', 'api/MaterialImageApiController@upload');
-$router->post('/api/materials/{materialId}/images/{id}/primary', 'api/MaterialImageApiController@setPrimary');
-$router->post('/api/materials/{materialId}/images/{id}/delete', 'api/MaterialImageApiController@delete');
+$router->get('/api/materials/{id}/images', 'api/MaterialImageApiController@index');
+$router->post('/api/materials/{id}/images', 'api/MaterialImageApiController@upload');
+$router->post('/api/materials/images/{id}/set-primary', 'api/MaterialImageApiController@setPrimary');
+$router->post('/api/materials/images/{id}/delete', 'api/MaterialImageApiController@destroy');
 
 // Stock In API routes
 $router->get('/api/stock-in', 'api/StockInApiController@index');
