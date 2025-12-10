@@ -60,7 +60,7 @@ class StockOut
         $this->db->beginTransaction();
         try {
             // Lock material row to avoid race condition
-            $stmt = $this->db->prepare("SELECT id, current_stock, IFNULL(low_stock_threshold, NULL) AS low_stock_threshold FROM materials WHERE id = ? FOR UPDATE");
+            $stmt = $this->db->prepare("SELECT id, current_stock FROM materials WHERE id = ? FOR UPDATE");
             $stmt->execute([(int)$data['material_id']]);
             $material = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -85,8 +85,8 @@ class StockOut
             // insert stock_out
             $insert = $this->db->prepare("
                 INSERT INTO stock_out 
-                (material_id, quantity, usage_type, reference_number, destination, transaction_date, notes, created_by)
-                VALUES (:material_id, :quantity, :usage_type, :reference_number, :destination, :transaction_date, :notes, :created_by)
+                (material_id, quantity, usage_type, reference_number, txn_date, note, created_by)
+                VALUES (:material_id, :quantity, :usage_type, :reference_number, :txn_date, :note, :created_by)
             ");
 
             $insert->execute([
@@ -94,9 +94,8 @@ class StockOut
                 ':quantity' => $qty,
                 ':usage_type' => $data['usage_type'],
                 ':reference_number' => $reference,
-                ':destination' => $data['destination'] ?? null,
-                ':transaction_date' => $data['transaction_date'],
-                ':notes' => $data['notes'] ?? null,
+                ':txn_date' => $data['transaction_date'],
+                ':note' => $data['notes'] ?? $data['note'] ?? null,
                 ':created_by' => (int)$data['created_by']
             ]);
 
@@ -107,11 +106,8 @@ class StockOut
             $update->execute([':qty' => $qty, ':id' => (int)$data['material_id']]);
 
             // optional low-stock alert trigger
-            $threshold = $material['low_stock_threshold'] !== null ? (float)$material['low_stock_threshold'] : null;
-            if ($threshold === null) {
-                // default threshold (configurable)
-                $threshold = 5; // default minimal threshold
-            }
+            // Use default threshold since low_stock_threshold column doesn't exist
+            $threshold = 5; // default minimal threshold
             $newStockStmt = $this->db->prepare("SELECT current_stock FROM materials WHERE id = ?");
             $newStockStmt->execute([(int)$data['material_id']]);
             $newStock = (float)$newStockStmt->fetchColumn();
@@ -173,7 +169,10 @@ class StockOut
         if (!$date) {
             throw new Exception("transaction_date must be yyyy-mm-dd");
         }
-        $today = new DateTime('today');
+        // Reset time to 00:00:00 for proper date-only comparison
+        $date->setTime(0, 0, 0);
+        $today = new DateTime('now');
+        $today->setTime(0, 0, 0);
         if ($date > $today) {
             throw new Exception("transaction_date cannot be in the future");
         }
@@ -244,15 +243,15 @@ class StockOut
             $params[':usage_type'] = $filters['usage_type'];
         }
         if (!empty($filters['start_date'])) {
-            $where[] = "transaction_date >= :start_date";
+            $where[] = "txn_date >= :start_date";
             $params[':start_date'] = $filters['start_date'];
         }
         if (!empty($filters['end_date'])) {
-            $where[] = "transaction_date <= :end_date";
+            $where[] = "txn_date <= :end_date";
             $params[':end_date'] = $filters['end_date'];
         }
         if (!empty($filters['q'])) {
-            $where[] = "(reference_number LIKE :q OR notes LIKE :q)";
+            $where[] = "(reference_number LIKE :q OR note LIKE :q)";
             $params[':q'] = '%' . $filters['q'] . '%';
         }
 
@@ -263,13 +262,13 @@ class StockOut
         $countStmt->execute($params);
         $total = (int)$countStmt->fetchColumn();
 
-        // fetch rows with material name join
-        $sql = "SELECT s.*, m.name AS material_name, u.name AS created_by_name
+        // fetch rows with material name join, alias txn_date as transaction_date for frontend
+        $sql = "SELECT s.*, s.txn_date AS transaction_date, s.note AS notes, m.name AS material_name, u.name AS created_by_name
                 FROM stock_out s
                 LEFT JOIN materials m ON m.id = s.material_id
                 LEFT JOIN users u ON u.id = s.created_by
                 $whereSql
-                ORDER BY s.transaction_date DESC, s.created_at DESC
+                ORDER BY s.txn_date DESC, s.created_at DESC
                 LIMIT :offset, :perPage";
         $stmt = $this->db->prepare($sql);
         foreach ($params as $k => $v) $stmt->bindValue($k, $v);

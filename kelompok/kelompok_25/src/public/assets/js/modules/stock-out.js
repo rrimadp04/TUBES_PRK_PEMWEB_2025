@@ -148,25 +148,41 @@ const StockOutModule = {
     updateStockPreview() {
         const currentStock = parseFloat(document.getElementById('current_stock')?.value || 0);
         const quantity = parseFloat(document.getElementById('quantity')?.value || 0);
-        const previewDiv = document.getElementById('stockPreview');
+        
+        const currentStockDisplay = document.getElementById('currentStockDisplay');
+        const afterStockDisplay = document.getElementById('afterStockDisplay');
+        const stockWarning = document.getElementById('stockWarning');
 
-        if (!previewDiv || !quantity) {
-            if (previewDiv) previewDiv.innerHTML = '';
+        if (currentStockDisplay) {
+            currentStockDisplay.textContent = currentStock.toFixed(2);
+        }
+
+        if (!quantity) {
+            if (afterStockDisplay) afterStockDisplay.textContent = '-';
+            if (stockWarning) {
+                stockWarning.textContent = '';
+                stockWarning.classList.add('hidden');
+            }
             return;
         }
 
         const newStock = currentStock - quantity;
-        const alertClass = newStock < 0 ? 'alert-danger' : (newStock <= 10 ? 'alert-warning' : 'alert-info');
+        
+        if (afterStockDisplay) {
+            afterStockDisplay.textContent = newStock.toFixed(2);
+            afterStockDisplay.className = newStock < 0 ? 'font-semibold text-red-600' : 'font-semibold text-green-600';
+        }
 
-        previewDiv.innerHTML = `
-            <div class="alert ${alertClass} mb-0">
-                <small>
-                    <strong>Preview:</strong> Stok saat ini: ${currentStock.toFixed(2)} → 
-                    Setelah keluar: ${newStock.toFixed(2)}
-                    ${newStock < 0 ? '<br><i class="bi bi-exclamation-triangle"></i> Stok tidak mencukupi!' : ''}
-                </small>
-            </div>
-        `;
+        if (stockWarning) {
+            if (newStock < 0) {
+                stockWarning.textContent = '⚠️ Stok tidak mencukupi!';
+                stockWarning.className = 'text-sm mt-2 text-red-600 font-medium';
+                stockWarning.classList.remove('hidden');
+            } else {
+                stockWarning.textContent = '';
+                stockWarning.classList.add('hidden');
+            }
+        }
     },
 
     /**
@@ -323,15 +339,29 @@ const StockOutModule = {
      * Show create modal
      */
     showModal() {
-        const modal = new bootstrap.Modal(document.getElementById('stockOutModal'));
+        const modal = document.getElementById('stockOutModal');
         const form = document.getElementById('stockOutForm');
 
-        form.reset();
-        document.getElementById('current_stock').value = '0';
-        document.getElementById('stockPreview').innerHTML = '';
-        document.getElementById('transaction_date').value = new Date().toISOString().split('T')[0];
+        if (form) form.reset();
+        
+        const currentStock = document.getElementById('current_stock');
+        if (currentStock) currentStock.value = '0';
+        
+        const stockPreview = document.getElementById('stockPreview');
+        if (stockPreview) stockPreview.innerHTML = '';
+        
+        const transactionDate = document.getElementById('transaction_date');
+        if (transactionDate) transactionDate.value = new Date().toISOString().split('T')[0];
 
-        modal.show();
+        if (modal) modal.classList.remove('hidden');
+    },
+
+    /**
+     * Hide modal
+     */
+    hideModal() {
+        const modal = document.getElementById('stockOutModal');
+        if (modal) modal.classList.add('hidden');
     },
 
     /**
@@ -350,21 +380,30 @@ const StockOutModule = {
             notes: formData.get('notes')
         };
 
-        // Validate
-        const errors = Validator.validate(data, {
-            material_id: 'required|numeric',
-            quantity: 'required|numeric|min:0.01',
-            usage_type: 'required',
-            transaction_date: 'required'
-        });
-
-        if (Object.keys(errors).length > 0) {
-            Toast.error('Mohon lengkapi form dengan benar');
+        // Manual validation
+        if (!data.material_id || isNaN(data.material_id) || data.material_id <= 0) {
+            Toast.error('Pilih material terlebih dahulu');
+            return;
+        }
+        
+        if (!data.quantity || isNaN(data.quantity) || data.quantity <= 0) {
+            Toast.error('Jumlah harus lebih dari 0');
+            return;
+        }
+        
+        if (!data.usage_type) {
+            Toast.error('Pilih jenis penggunaan');
+            return;
+        }
+        
+        if (!data.transaction_date) {
+            Toast.error('Tanggal transaksi harus diisi');
             return;
         }
 
         // Check stock
-        const currentStock = parseFloat(document.getElementById('current_stock').value || 0);
+        const currentStockEl = document.getElementById('current_stock');
+        const currentStock = currentStockEl ? parseFloat(currentStockEl.value || 0) : 0;
         if (data.quantity > currentStock) {
             Toast.error('Jumlah keluar melebihi stok tersedia');
             return;
@@ -376,8 +415,7 @@ const StockOutModule = {
             if (response.success) {
                 Toast.success(response.message || 'Stock out berhasil dibuat');
                 
-                const modal = bootstrap.Modal.getInstance(document.getElementById('stockOutModal'));
-                modal.hide();
+                this.hideModal();
                 
                 form.reset();
                 this.loadStockOuts();
@@ -443,8 +481,8 @@ const StockOutModule = {
                 `;
                 
                 document.getElementById('detailContent').innerHTML = detailHtml;
-                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-                modal.show();
+                const modal = document.getElementById('detailModal');
+                if (modal) modal.classList.remove('hidden');
             }
         } catch (error) {
             console.error('View detail error:', error);
