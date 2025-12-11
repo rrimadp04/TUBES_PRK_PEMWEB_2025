@@ -95,7 +95,11 @@
                         <tr class="hover:bg-slate-50">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">📦</span>
+                                    <?php if (!empty($material['image_url'])): ?>
+                                        <img src="<?= htmlspecialchars($material['image_url']) ?>" 
+                                             alt="<?= htmlspecialchars($material['name']) ?>" 
+                                             class="h-10 w-10 rounded-xl object-cover border border-slate-200">
+                                    <?php endif; ?>
                                     <span class="text-sm font-semibold text-slate-800"><?= htmlspecialchars($material['name']) ?></span>
                                 </div>
                             </td>
