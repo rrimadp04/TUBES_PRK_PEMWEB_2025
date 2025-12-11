@@ -160,15 +160,13 @@
                     const dateStr = date.toISOString().split('T')[0];
                     dates.push(date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
                     
-                    const stockIn = data.stock_in.find(d => d.date === dateStr);
-                    const stockOut = data.stock_out.find(d => d.date === dateStr);
-                    
-                    stockInValues.push(stockIn ? parseFloat(stockIn.stock_in_value) : 0);
-                    stockOutValues.push(stockOut ? parseFloat(stockOut.stock_out_count) * 100000 : 0);
-                }
-
-    function exportCSV() {
-        Reports.exportCSV();
-    }
+                const stockIn = data.stock_in.find(d => d.date === dateStr);
+                const stockOut = data.stock_out.find(d => d.date === dateStr);
+                
+                stockInValues.push(stockIn ? parseFloat(stockIn.stock_in_value) : 0);
+                stockOutValues.push(stockOut ? parseFloat(stockOut.stock_out_count) * 100000 : 0);
+            }
+        })
+        .catch(err => console.error('Error loading transaction trend:', err));
+    });
 </script>
-
