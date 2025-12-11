@@ -13,7 +13,7 @@ class TransactionController extends Controller {
         $endDate = $_GET['end_date'] ?? null;
         $type = $_GET['type'] ?? 'all';
 
-        $transactions = $this->transactionModel->getTransactionReport($startDate, $endDate, $type);
+        $transactions = $this->transactionModel->getTransactionReport($type, $startDate, $endDate);
         $summary = $this->transactionModel->getSummary($startDate, $endDate);
 
         $this->view('reports/transactions', [
@@ -40,7 +40,7 @@ class TransactionController extends Controller {
         $endDate = $_GET['end_date'] ?? null;
         $type = $_GET['type'] ?? 'all';
 
-        $transactions = $this->transactionModel->getTransactionReport($startDate, $endDate, $type);
+        $transactions = $this->transactionModel->getTransactionReport($type, $startDate, $endDate);
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=laporan_transaksi_' . date('Y-m-d') . '.csv');

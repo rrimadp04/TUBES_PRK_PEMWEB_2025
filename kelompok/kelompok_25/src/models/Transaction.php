@@ -2,7 +2,7 @@
 class Transaction extends Model {
     protected $table = '';
 
-    public function getTransactionReport($startDate = null, $endDate = null, $type = null) {
+    public function getTransactionReport($type = 'all', $startDate = null, $endDate = null) {
         $sql = "SELECT 
                     'stock_in' as type,
                     si.id,

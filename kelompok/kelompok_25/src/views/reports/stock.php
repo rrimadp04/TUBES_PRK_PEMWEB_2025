@@ -122,7 +122,39 @@
 
 <script src="/assets/js/modules/reports.js"></script>
 <script>
+let debounceTimer;
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(applyFilters, 500);
+});
+
+document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    if (status) params.append('status', status);
+    
+    window.location.href = '<?= BASE_URL ?>/reports/stock?' + params.toString();
+}
+
 function exportExcel() {
-    Reports.exportExcel();
+    const search = document.getElementById('searchInput').value;
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    if (status) params.append('status', status);
+    
+    window.location.href = '<?= BASE_URL ?>/reports/export-excel?' + params.toString();
 }
 </script>
