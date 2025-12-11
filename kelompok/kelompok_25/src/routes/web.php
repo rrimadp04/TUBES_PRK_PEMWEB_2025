@@ -58,6 +58,13 @@ $router->get('/reports/export-excel', function() {
     $controller = new ReportController();
     $controller->exportExcel();
 });
+
+$router->get('/reports/export-transactions', function() {
+    AuthMiddleware::check();
+    require_once ROOT_PATH . '/controllers/web/ReportController.php';
+    $controller = new ReportController();
+    $controller->exportTransactions();
+});
 $router->get('/reports/transactions', function() {
     AuthMiddleware::check();
     require_once ROOT_PATH . '/models/Transaction.php';

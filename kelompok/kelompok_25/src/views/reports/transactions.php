@@ -5,8 +5,9 @@
             <h1 class="text-2xl font-semibold text-slate-800 mt-1">Laporan Transaksi</h1>
             <p class="text-sm text-slate-500">Riwayat semua transaksi stok masuk dan keluar</p>
         </div>
-        <button onclick="exportCSV()" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-            <span>⬇</span> Export CSV
+        <button onclick="exportExcel()" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m0 0l-6-6m6 6l6-6" /></svg>
+            Export Excel
         </button>
     </div>
 
@@ -130,7 +131,7 @@
             window.location.href = '/reports/transactions?' + params.toString();
         }
 
-        function exportCSV() {
+        function exportExcel() {
             const type = document.getElementById('typeFilter').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
@@ -138,6 +139,10 @@
             const params = new URLSearchParams();
             if (type !== 'all') params.append('type', type);
             if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            
+            window.location.href = '/reports/export-transactions?' + params.toString();
+        }Date);
             if (endDate) params.append('end_date', endDate);
             
             window.location.href = '/reports/transactions/export?' + params.toString();
